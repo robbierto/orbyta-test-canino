@@ -1,6 +1,5 @@
 package com.orbyta.banking.model;
 
-import java.math.BigDecimal;
 import java.util.Date;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
