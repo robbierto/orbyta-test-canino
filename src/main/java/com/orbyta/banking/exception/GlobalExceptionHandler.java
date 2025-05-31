@@ -6,6 +6,8 @@ import com.orbyta.banking.constants.ErrorConstants;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -21,9 +23,12 @@ import com.orbyta.banking.model.ApiResponse;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ApiResponse<Object>> handleMissingParams(MissingServletRequestParameterException ex) {
         String paramName = ex.getParameterName();
+        logger.warn("Missing required parameter: {}", paramName);
 
         Map<String, Object> errorDetails = new HashMap<>();
         errorDetails.put(ErrorConstants.CODE, ErrorConstants.MISSING_PARAMETER);
@@ -39,10 +44,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RestClientException.class)
     public ResponseEntity<ApiResponse<Object>> handleRestClientException(RestClientException ex) {
+        logger.error("REST client exception occurred while calling external API", ex);
+
         Map<String, Object> errorDetails = new HashMap<>();
 
         if (ex instanceof HttpClientErrorException) {
             HttpClientErrorException httpEx = (HttpClientErrorException) ex;
+
+            logger.error("HTTP client error: {} - {}", httpEx.getStatusCode(), httpEx.getResponseBodyAsString());
+
             errorDetails.put(ErrorConstants.CODE, ErrorConstants.API_ERROR);
             errorDetails.put(ErrorConstants.DESCRIPTION, "Error calling external API: " + httpEx.getStatusCode());
             errorDetails.put(ErrorConstants.DETAILS, httpEx.getResponseBodyAsString());
@@ -67,6 +77,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGenericException(Exception ex) {
+        logger.error("Unexpected error occurred", ex);
+
         Map<String, Object> errorDetails = new HashMap<>();
         errorDetails.put(ErrorConstants.CODE, ErrorConstants.INTERNAL_ERROR);
         errorDetails.put(ErrorConstants.DESCRIPTION, "An unexpected error occurred");
@@ -81,6 +93,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        logger.warn("Validation error occurred: {}", ex.getMessage());
+
         Map<String, String> validationErrors = new HashMap<>();
 
         ex.getBindingResult().getAllErrors().forEach((error) -> {
@@ -90,6 +104,7 @@ public class GlobalExceptionHandler {
 
             String errorMessage = error.getDefaultMessage();
             validationErrors.put(fieldName, errorMessage);
+            logger.debug("Validation error on field {}: {}", fieldName, errorMessage);
         });
 
         Map<String, Object> errorDetails = new HashMap<>();
