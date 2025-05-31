@@ -3,8 +3,11 @@ package com.orbyta.banking.exception;
 import java.util.HashMap;
 import java.util.Map;
 
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -72,5 +75,30 @@ public class GlobalExceptionHandler {
         apiResponse.setError(errorDetails);
 
         return new ResponseEntity<>(apiResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> validationErrors = new HashMap<>();
+
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = error instanceof FieldError
+                    ? ((FieldError) error).getField()
+                    : error.getObjectName();
+
+            String errorMessage = error.getDefaultMessage();
+            validationErrors.put(fieldName, errorMessage);
+        });
+
+        Map<String, Object> errorDetails = new HashMap<>();
+        errorDetails.put("code", "VALIDATION_ERROR");
+        errorDetails.put("description", "Errore di validazione");
+        errorDetails.put("validationErrors", validationErrors);
+
+        ApiResponse<Object> apiResponse = new ApiResponse<>();
+        apiResponse.setStatus("KO");
+        apiResponse.setError(errorDetails);
+
+        return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
     }
 }

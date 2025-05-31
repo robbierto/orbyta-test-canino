@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.AssertTrue;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,7 +22,7 @@ public class MoneyTransferRequest {
     /**
      * Obbligatorio. Le informazioni del creditore.
      */
-    @NotNull(message = "Creditor is required")
+    @NotNull(message = "Il creditore è obbligatorio")
     @Valid
     private Creditor creditor;
 
@@ -41,20 +42,20 @@ public class MoneyTransferRequest {
      * Obbligatorio. La descrizione del bonifico.
      * Lunghezza massima: 140 caratteri.
      */
-    @NotBlank(message = "Description is required")
-    @Size(max = 140, message = "Description must not exceed 140 characters")
+    @NotBlank(message = "La descrizione è obbligatoria")
+    @Size(max = 140, message = "La descrizione non deve superare i 140 caratteri")
     private String description;
 
     /**
      * Obbligatorio. L'importo del bonifico.
      */
-    @NotNull(message = "Amount is required")
+    @NotNull(message = "L'importo è obbligatorio")
     private BigDecimal amount;
 
     /**
      * Obbligatorio. La valuta del bonifico.
      */
-    @NotBlank(message = "Currency is required")
+    @NotBlank(message = "La valuta è obbligatoria")
     private String currency;
 
     /**
@@ -74,7 +75,7 @@ public class MoneyTransferRequest {
      * Opzionale. Lo schema di commissione da adottare. Predefinito è 'SHA'.
      * Valori validi: SHA, OUR, BEN
      */
-    @Pattern(regexp = "SHA|OUR|BEN", message = "Fee type must be one of: SHA, OUR, BEN")
+    @Pattern(regexp = "SHA|OUR|BEN", message = "Il tipo di commissione deve essere uno tra: SHA, OUR, BEN")
     private String feeType;
 
     /**
@@ -96,14 +97,14 @@ public class MoneyTransferRequest {
          * Obbligatorio. Il nome del creditore.
          * Lunghezza massima: 70 caratteri.
          */
-        @NotBlank(message = "Creditor name is required")
-        @Size(max = 70, message = "Creditor name must not exceed 70 characters")
+        @NotBlank(message = "Il nome del creditore è obbligatorio")
+        @Size(max = 70, message = "Il nome del creditore non deve superare i 70 caratteri")
         private String name;
 
         /**
          * Obbligatorio. Le informazioni sul conto del creditore.
          */
-        @NotNull(message = "Creditor account is required")
+        @NotNull(message = "Il conto del creditore è obbligatorio")
         @Valid
         private Account account;
 
@@ -124,7 +125,7 @@ public class MoneyTransferRequest {
              * un numero
              * di conto SWIFT).
              */
-            @NotBlank(message = "Account code is required")
+            @NotBlank(message = "Il codice del conto è obbligatorio")
             private String accountCode; // This might need to be 'iban' based on API expectations
 
             /**
@@ -142,7 +143,7 @@ public class MoneyTransferRequest {
              * Opzionale. L'indirizzo del creditore.
              * Lunghezza massima: 40 caratteri.
              */
-            @Size(max = 40, message = "Address must not exceed 40 characters")
+            @Size(max = 40, message = "L'indirizzo non deve superare i 40 caratteri")
             private String address;
 
             /**
@@ -154,7 +155,7 @@ public class MoneyTransferRequest {
              * Opzionale. Il codice paese del creditore, conforme allo standard ISO 3166-1
              * alpha 2.
              */
-            @Pattern(regexp = "^[A-Z]{2}$", message = "Country code must be a valid ISO 3166-1 alpha-2 code")
+            @Pattern(regexp = "^[A-Z]{2}$", message = "Il codice paese deve essere un codice valido ISO 3166-1 alpha-2")
             private String countryCode;
         }
     }
@@ -167,7 +168,7 @@ public class MoneyTransferRequest {
          * Opzionale. L'ID della detrazione fiscale.
          * Valori validi: 119R, DL50, L296, L449, L234
          */
-        @Pattern(regexp = "119R|DL50|L296|L449|L234", message = "Tax relief ID must be one of: 119R, DL50, L296, L449, L234")
+        @Pattern(regexp = "119R|DL50|L296|L449|L234", message = "L'ID della detrazione fiscale deve essere uno tra: 119R, DL50, L296, L449, L234")
         private String taxReliefId;
 
         /**
@@ -175,22 +176,22 @@ public class MoneyTransferRequest {
          * di ristrutturazione
          * di spazi condominiali comuni.
          */
-        @NotNull(message = "isCondoUpgrade is required")
+        @NotNull(message = "Il campo isCondoUpgrade è obbligatorio")
         @JsonProperty("isCondoUpgrade")
         private boolean isCondoUpgrade;
 
         /**
          * Obbligatorio. Il codice fiscale del creditore del bonifico.
          */
-        @NotBlank(message = "Creditor fiscal code is required")
+        @NotBlank(message = "Il codice fiscale del creditore è obbligatorio")
         private String creditorFiscalCode;
 
         /**
          * Obbligatorio. Il tipo di beneficiario della detrazione fiscale.
          * Valori validi: NATURAL_PERSON, LEGAL_PERSON
          */
-        @NotBlank(message = "Beneficiary type is required")
-        @Pattern(regexp = "NATURAL_PERSON|LEGAL_PERSON", message = "Beneficiary type must be either NATURAL_PERSON or LEGAL_PERSON")
+        @NotBlank(message = "Il tipo di beneficiario è obbligatorio")
+        @Pattern(regexp = "NATURAL_PERSON|LEGAL_PERSON", message = "Il tipo di beneficiario deve essere NATURAL_PERSON o LEGAL_PERSON")
         private String beneficiaryType;
 
         /**
@@ -202,9 +203,40 @@ public class MoneyTransferRequest {
         /**
          * Opzionale. Obbligatorio se beneficiaryType è LEGAL_PERSON.
          */
-        @Valid
         private LegalPersonBeneficiary legalPersonBeneficiary;
-
+        
+        /**
+         * Verifica che se il tipo di beneficiario è LEGAL_PERSON, il legalPersonBeneficiary sia valido.
+         * @return true se la validazione passa, false altrimenti
+         */
+        @AssertTrue(message = "I dettagli della persona giuridica sono obbligatori quando il tipo di beneficiario è LEGAL_PERSON")
+        public boolean isLegalPersonBeneficiaryValid() {
+            // Se il tipo è LEGAL_PERSON, verifica che legalPersonBeneficiary non sia null
+            if ("LEGAL_PERSON".equals(beneficiaryType)) {
+                return legalPersonBeneficiary != null && 
+                       legalPersonBeneficiary.getFiscalCode() != null && 
+                       !legalPersonBeneficiary.getFiscalCode().trim().isEmpty();
+            }
+            // Negli altri casi, non importa
+            return true;
+        }
+        
+        /**
+         * Verifica che se il tipo di beneficiario è NATURAL_PERSON, il naturalPersonBeneficiary sia valido.
+         * @return true se la validazione passa, false altrimenti
+         */
+        @AssertTrue(message = "I dettagli della persona fisica sono obbligatori quando il tipo di beneficiario è NATURAL_PERSON")
+        public boolean isNaturalPersonBeneficiaryValid() {
+            // Se il tipo è NATURAL_PERSON, verifica che naturalPersonBeneficiary non sia null
+            if ("NATURAL_PERSON".equals(beneficiaryType)) {
+                return naturalPersonBeneficiary != null && 
+                       naturalPersonBeneficiary.getFiscalCode1() != null && 
+                       !naturalPersonBeneficiary.getFiscalCode1().trim().isEmpty();
+            }
+            // Negli altri casi, non importa
+            return true;
+        }
+        
         @Data
         @NoArgsConstructor
         @AllArgsConstructor
@@ -212,7 +244,7 @@ public class MoneyTransferRequest {
             /**
              * Obbligatorio. Il Codice Fiscale italiano del primo beneficiario.
              */
-            @NotBlank(message = "Fiscal code 1 is required")
+            @NotBlank(message = "Il codice fiscale 1 è obbligatorio")
             private String fiscalCode1;
 
             /**
@@ -229,14 +261,10 @@ public class MoneyTransferRequest {
         @AllArgsConstructor
         public static class LegalPersonBeneficiary {
             /**
-             * Obbligatorio. La Partita IVA italiana della persona giuridica.
+             * Obbligatorio. Il Codice Fiscale italiano della persona giuridica.
              */
-            @NotBlank(message = "Fiscal code is required")
+            @NotBlank(message = "Il codice fiscale della persona giuridica è obbligatorio")
             private String fiscalCode;
-
-            /**
-             * Opzionale. Il Codice Fiscale italiano del rappresentante legale.
-             */
             private String legalRepresentativeFiscalCode;
         }
     }
