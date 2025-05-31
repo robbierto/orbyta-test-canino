@@ -43,8 +43,11 @@ public class FabrickService {
     public ApiResponse<AccountsPayload> getAccounts() {
         HttpEntity<?> entity = new HttpEntity<>(getHeaders());
 
+        String url = UriComponentsBuilder.fromUriString(apiUrl)
+                .toUriString();
+
         ResponseEntity<ApiResponse<AccountsPayload>> response = restTemplate.exchange(
-                apiUrl,
+                url,
                 HttpMethod.GET,
                 entity,
                 new ParameterizedTypeReference<ApiResponse<AccountsPayload>>() {
@@ -56,7 +59,8 @@ public class FabrickService {
     public ApiResponse<Balance> getAccountBalance(String accountId) {
         HttpEntity<?> entity = new HttpEntity<>(getHeaders());
 
-        String balanceUrl = apiUrl + "/" + accountId + "/balance";
+        String balanceUrl = buildAccountUrl(accountId, "/balance")
+                .toUriString();
 
         ResponseEntity<ApiResponse<Balance>> response = restTemplate.exchange(
                 balanceUrl,
@@ -72,14 +76,13 @@ public class FabrickService {
             String toAccountingDate) {
         HttpEntity<?> entity = new HttpEntity<>(getHeaders());
 
-        String transactionsUrl = apiUrl + "/" + accountId + "/transactions";
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(transactionsUrl)
+        String transactionsUrl = buildAccountUrl(accountId, "/transactions")
                 .queryParam("fromAccountingDate", fromAccountingDate)
-                .queryParam("toAccountingDate", toAccountingDate);
+                .queryParam("toAccountingDate", toAccountingDate)
+                .toUriString();
 
         ResponseEntity<ApiResponse<TransactionsPayload>> response = restTemplate.exchange(
-                builder.toUriString(),
+                transactionsUrl,
                 HttpMethod.GET,
                 entity,
                 new ParameterizedTypeReference<ApiResponse<TransactionsPayload>>() {
@@ -95,7 +98,8 @@ public class FabrickService {
 
         HttpEntity<MoneyTransferRequest> entity = new HttpEntity<>(request, headers);
 
-        String moneyTransferUrl = apiUrl + "/" + accountId + "/payments/money-transfers";
+        String moneyTransferUrl = buildAccountUrl(accountId, "/payments/money-transfers")
+                .toUriString();
 
         ResponseEntity<ApiResponse<MoneyTransferResponse>> response = restTemplate.exchange(
                 moneyTransferUrl,
@@ -105,7 +109,12 @@ public class FabrickService {
                 });
 
         return response.getBody();
-
     }
 
+    // Metodo per costruire l'URL per le operazioni sull'account
+    private UriComponentsBuilder buildAccountUrl(String accountId, String path) {
+        return UriComponentsBuilder.fromUriString(apiUrl)
+                .pathSegment(accountId)
+                .path(path);
+    }
 }
