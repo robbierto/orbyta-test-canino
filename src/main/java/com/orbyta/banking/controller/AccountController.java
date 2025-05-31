@@ -1,13 +1,20 @@
 package com.orbyta.banking.controller;
 
 import com.orbyta.banking.model.ApiResponse;
-import com.orbyta.banking.model.AccountsPayload;
-import com.orbyta.banking.model.Balance;
-import com.orbyta.banking.model.TransactionsPayload;
-import com.orbyta.banking.service.AccountService;
+import com.orbyta.banking.model.account.AccountsPayload;
+import com.orbyta.banking.model.balance.Balance;
+import com.orbyta.banking.model.moneytransfer.MoneyTransferRequest;
+import com.orbyta.banking.model.moneytransfer.MoneyTransferResponse;
+import com.orbyta.banking.model.transaction.TransactionsPayload;
+import com.orbyta.banking.service.FabrickService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,21 +23,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/accounts")
 public class AccountController {
 
-    private final AccountService accountService;
+    private final FabrickService fabrickService;
 
-    public AccountController(AccountService accountService) {
-        this.accountService = accountService;
+    public AccountController(FabrickService accountService) {
+        this.fabrickService = accountService;
     }
 
     @GetMapping
     public ResponseEntity<ApiResponse<AccountsPayload>> getAccounts() {
-        ApiResponse<AccountsPayload> response = accountService.getAccounts();
+        ApiResponse<AccountsPayload> response = fabrickService.getAccounts();
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{accountId}/balance")
     public ResponseEntity<ApiResponse<Balance>> getAccountBalance(@PathVariable String accountId) {
-        ApiResponse<Balance> response = accountService.getAccountBalance(accountId);
+        ApiResponse<Balance> response = fabrickService.getAccountBalance(accountId);
         return ResponseEntity.ok(response);
     }
 
@@ -40,8 +47,18 @@ public class AccountController {
             @RequestParam(required = true) String fromAccountingDate,
             @RequestParam(required = true) String toAccountingDate) {
 
-        ApiResponse<TransactionsPayload> response = accountService.getAccountTransactions(
+        ApiResponse<TransactionsPayload> response = fabrickService.getAccountTransactions(
                 accountId, fromAccountingDate, toAccountingDate);
+        return ResponseEntity.ok(response);
+    }
+
+
+    @PostMapping("/{accountId}/payments/money-transfers")
+    public ResponseEntity<ApiResponse<MoneyTransferResponse>> createMoneyTransfer(
+            @PathVariable String accountId,
+            @RequestBody @Valid MoneyTransferRequest request) {
+
+        ApiResponse<MoneyTransferResponse> response = fabrickService.createMoneyTransfer(accountId, request);
         return ResponseEntity.ok(response);
     }
 }

@@ -1,4 +1,4 @@
-package com.orbyta.banking.model;
+package com.orbyta.banking.model.transaction;
 
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;

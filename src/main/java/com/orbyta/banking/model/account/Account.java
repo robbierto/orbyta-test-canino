@@ -1,4 +1,4 @@
-package com.orbyta.banking.model;
+package com.orbyta.banking.model.account;
 
 import java.util.Date;
 import lombok.NoArgsConstructor;
