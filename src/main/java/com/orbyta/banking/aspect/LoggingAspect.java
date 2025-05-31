@@ -49,16 +49,16 @@ public class LoggingAspect {
     /**
      * Log delle eccezioni lanciate dai controller o dai servizi
      */
-    @AfterThrowing(pointcut = "controllerMethods() || serviceMethods()", throwing = "exception")
-    public void logAfterThrowing(JoinPoint joinPoint, Throwable exception) {
-        Logger logger = LoggerFactory.getLogger(joinPoint.getSignature().getDeclaringType());
-        logger.error(
-                "Exception in {}.{}() with cause = {}",
-                joinPoint.getSignature().getDeclaringTypeName(),
-                joinPoint.getSignature().getName(),
-                exception.getCause() != null ? exception.getCause() : "NULL");
-        logger.error("Exception details:", exception);
-    }
+    // @AfterThrowing(pointcut = "controllerMethods() || serviceMethods()", throwing = "exception")
+    // public void logAfterThrowing(JoinPoint joinPoint, Throwable exception) {
+    //     Logger logger = LoggerFactory.getLogger(joinPoint.getSignature().getDeclaringType());
+    //     logger.error(
+    //             "Exception in {}.{}() with cause = {}",
+    //             joinPoint.getSignature().getDeclaringTypeName(),
+    //             joinPoint.getSignature().getName(),
+    //             exception.getCause() != null ? exception.getCause() : "NULL");
+    //     logger.error("Exception details:", exception);
+    // }
 
     /**
      * Metodo helper per loggare l'esecuzione dei metodi
