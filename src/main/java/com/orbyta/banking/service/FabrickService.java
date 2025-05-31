@@ -1,5 +1,7 @@
 package com.orbyta.banking.service;
 
+import com.orbyta.banking.constants.ApiConstants;
+import com.orbyta.banking.constants.HeaderConstants;
 import com.orbyta.banking.model.ApiResponse;
 import com.orbyta.banking.model.account.AccountsPayload;
 import com.orbyta.banking.model.balance.Balance;
@@ -35,8 +37,8 @@ public class FabrickService {
 
     private HttpHeaders getHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Auth-Schema", "S2S");
-        headers.set("apiKey", apiKey);
+        headers.set(HeaderConstants.AUTH_SCHEMA, HeaderConstants.AUTH_SCHEMA_VALUE);
+        headers.set(HeaderConstants.API_KEY, apiKey);
         return headers;
     }
 
@@ -59,7 +61,7 @@ public class FabrickService {
     public ApiResponse<Balance> getAccountBalance(String accountId) {
         HttpEntity<?> entity = new HttpEntity<>(getHeaders());
 
-        String balanceUrl = buildAccountUrl(accountId, "/balance")
+        String balanceUrl = buildAccountUrl(accountId, ApiConstants.BALANCE_ENDPOINT)
                 .toUriString();
 
         ResponseEntity<ApiResponse<Balance>> response = restTemplate.exchange(
@@ -76,7 +78,7 @@ public class FabrickService {
             String toAccountingDate) {
         HttpEntity<?> entity = new HttpEntity<>(getHeaders());
 
-        String transactionsUrl = buildAccountUrl(accountId, "/transactions")
+        String transactionsUrl = buildAccountUrl(accountId, ApiConstants.TRANSACTIONS_ENDPOINT)
                 .queryParam("fromAccountingDate", fromAccountingDate)
                 .queryParam("toAccountingDate", toAccountingDate)
                 .toUriString();
@@ -93,12 +95,12 @@ public class FabrickService {
 
     public ApiResponse<MoneyTransferResponse> createMoneyTransfer(String accountId, MoneyTransferRequest request) {
         HttpHeaders headers = getHeaders();
-        headers.set("X-Time-Zone", "Europe/Rome");
+        headers.set(HeaderConstants.X_TIME_ZONE, ApiConstants.TIMEZONE_EUROPE_ROME);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<MoneyTransferRequest> entity = new HttpEntity<>(request, headers);
 
-        String moneyTransferUrl = buildAccountUrl(accountId, "/payments/money-transfers")
+        String moneyTransferUrl = buildAccountUrl(accountId, ApiConstants.MONEY_TRANSFERS_ENDPOINT)
                 .toUriString();
 
         ResponseEntity<ApiResponse<MoneyTransferResponse>> response = restTemplate.exchange(

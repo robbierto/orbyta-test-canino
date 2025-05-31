@@ -1,5 +1,7 @@
 package com.orbyta.banking.model.moneytransfer;
 
+import com.orbyta.banking.constants.ApiConstants;
+import com.orbyta.banking.constants.ValidationConstants;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -30,7 +32,7 @@ public class MoneyTransferRequest {
      * Opzionale, ma obbligatorio se isInstant è false.
      * La data in cui il bonifico deve essere eseguito.
      */
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = ApiConstants.DEFAULT_DATE_PATTERN)
     private LocalDate executionDate;
 
     /**
@@ -43,7 +45,8 @@ public class MoneyTransferRequest {
      * Lunghezza massima: 140 caratteri.
      */
     @NotBlank(message = "La descrizione è obbligatoria")
-    @Size(max = 140, message = "La descrizione non deve superare i 140 caratteri")
+    @Size(max = ValidationConstants.MAX_DESCRIPTION_LENGTH, message = "La descrizione non deve superare i "
+            + ValidationConstants.MAX_DESCRIPTION_LENGTH + " caratteri")
     private String description;
 
     /**
@@ -75,7 +78,7 @@ public class MoneyTransferRequest {
      * Opzionale. Lo schema di commissione da adottare. Predefinito è 'SHA'.
      * Valori validi: SHA, OUR, BEN
      */
-    @Pattern(regexp = "SHA|OUR|BEN", message = "Il tipo di commissione deve essere uno tra: SHA, OUR, BEN")
+    @Pattern(regexp = ValidationConstants.FEE_TYPE_PATTERN, message = "Il tipo di commissione deve essere uno tra: SHA, OUR, BEN")
     private String feeType;
 
     /**
@@ -98,7 +101,8 @@ public class MoneyTransferRequest {
          * Lunghezza massima: 70 caratteri.
          */
         @NotBlank(message = "Il nome del creditore è obbligatorio")
-        @Size(max = 70, message = "Il nome del creditore non deve superare i 70 caratteri")
+        @Size(max = ValidationConstants.MAX_CREDITOR_NAME_LENGTH, message = "Il nome del creditore non deve superare i "
+                + ValidationConstants.MAX_CREDITOR_NAME_LENGTH + " caratteri")
         private String name;
 
         /**
@@ -143,7 +147,8 @@ public class MoneyTransferRequest {
              * Opzionale. L'indirizzo del creditore.
              * Lunghezza massima: 40 caratteri.
              */
-            @Size(max = 40, message = "L'indirizzo non deve superare i 40 caratteri")
+            @Size(max = ValidationConstants.MAX_ADDRESS_LENGTH, message = "L'indirizzo non deve superare i "
+                    + ValidationConstants.MAX_ADDRESS_LENGTH + " caratteri")
             private String address;
 
             /**
@@ -168,7 +173,7 @@ public class MoneyTransferRequest {
          * Opzionale. L'ID della detrazione fiscale.
          * Valori validi: 119R, DL50, L296, L449, L234
          */
-        @Pattern(regexp = "119R|DL50|L296|L449|L234", message = "L'ID della detrazione fiscale deve essere uno tra: 119R, DL50, L296, L449, L234")
+        @Pattern(regexp = ValidationConstants.TAX_RELIEF_ID_PATTERN, message = "L'ID della detrazione fiscale deve essere uno tra: 119R, DL50, L296, L449, L234")
         private String taxReliefId;
 
         /**
@@ -191,7 +196,8 @@ public class MoneyTransferRequest {
          * Valori validi: NATURAL_PERSON, LEGAL_PERSON
          */
         @NotBlank(message = "Il tipo di beneficiario è obbligatorio")
-        @Pattern(regexp = "NATURAL_PERSON|LEGAL_PERSON", message = "Il tipo di beneficiario deve essere NATURAL_PERSON o LEGAL_PERSON")
+        @Pattern(regexp = ValidationConstants.BENEFICIARY_TYPE_PATTERN, message = "Il tipo di beneficiario deve essere "
+                + ValidationConstants.NATURAL_PERSON + " o " + ValidationConstants.LEGAL_PERSON)
         private String beneficiaryType;
 
         /**
@@ -204,39 +210,44 @@ public class MoneyTransferRequest {
          * Opzionale. Obbligatorio se beneficiaryType è LEGAL_PERSON.
          */
         private LegalPersonBeneficiary legalPersonBeneficiary;
-        
+
         /**
-         * Verifica che se il tipo di beneficiario è LEGAL_PERSON, il legalPersonBeneficiary sia valido.
+         * Verifica che se il tipo di beneficiario è LEGAL_PERSON, il
+         * legalPersonBeneficiary sia valido.
+         * 
          * @return true se la validazione passa, false altrimenti
          */
         @AssertTrue(message = "I dettagli della persona giuridica sono obbligatori quando il tipo di beneficiario è LEGAL_PERSON")
         public boolean isLegalPersonBeneficiaryValid() {
             // Se il tipo è LEGAL_PERSON, verifica che legalPersonBeneficiary non sia null
-            if ("LEGAL_PERSON".equals(beneficiaryType)) {
-                return legalPersonBeneficiary != null && 
-                       legalPersonBeneficiary.getFiscalCode() != null && 
-                       !legalPersonBeneficiary.getFiscalCode().trim().isEmpty();
+            if (ValidationConstants.LEGAL_PERSON.equals(beneficiaryType)) {
+                return legalPersonBeneficiary != null &&
+                        legalPersonBeneficiary.getFiscalCode() != null &&
+                        !legalPersonBeneficiary.getFiscalCode().trim().isEmpty();
             }
             // Negli altri casi, non importa
             return true;
         }
-        
+
         /**
-         * Verifica che se il tipo di beneficiario è NATURAL_PERSON, il naturalPersonBeneficiary sia valido.
+         * Verifica che se il tipo di beneficiario è NATURAL_PERSON, il
+         * naturalPersonBeneficiary sia valido.
+         * 
          * @return true se la validazione passa, false altrimenti
          */
         @AssertTrue(message = "I dettagli della persona fisica sono obbligatori quando il tipo di beneficiario è NATURAL_PERSON")
         public boolean isNaturalPersonBeneficiaryValid() {
-            // Se il tipo è NATURAL_PERSON, verifica che naturalPersonBeneficiary non sia null
-            if ("NATURAL_PERSON".equals(beneficiaryType)) {
-                return naturalPersonBeneficiary != null && 
-                       naturalPersonBeneficiary.getFiscalCode1() != null && 
-                       !naturalPersonBeneficiary.getFiscalCode1().trim().isEmpty();
+            // Se il tipo è NATURAL_PERSON, verifica che naturalPersonBeneficiary non sia
+            // null
+            if (ValidationConstants.NATURAL_PERSON.equals(beneficiaryType)) {
+                return naturalPersonBeneficiary != null &&
+                        naturalPersonBeneficiary.getFiscalCode1() != null &&
+                        !naturalPersonBeneficiary.getFiscalCode1().trim().isEmpty();
             }
             // Negli altri casi, non importa
             return true;
         }
-        
+
         @Data
         @NoArgsConstructor
         @AllArgsConstructor

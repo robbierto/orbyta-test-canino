@@ -1,5 +1,6 @@
 package com.orbyta.banking.controller;
 
+import com.orbyta.banking.constants.ApiConstants;
 import com.orbyta.banking.model.ApiResponse;
 import com.orbyta.banking.model.account.AccountsPayload;
 import com.orbyta.banking.model.balance.Balance;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/accounts")
+@RequestMapping(ApiConstants.API_ACCOUNTS_BASE_PATH)
 public class AccountController {
 
     private final FabrickService fabrickService;
@@ -35,13 +36,13 @@ public class AccountController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{accountId}/balance")
+    @GetMapping("/{accountId}" + ApiConstants.BALANCE_ENDPOINT)
     public ResponseEntity<ApiResponse<Balance>> getAccountBalance(@PathVariable String accountId) {
         ApiResponse<Balance> response = fabrickService.getAccountBalance(accountId);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{accountId}/transactions")
+    @GetMapping("/{accountId}" + ApiConstants.TRANSACTIONS_ENDPOINT)
     public ResponseEntity<ApiResponse<TransactionsPayload>> getAccountTransactions(
             @PathVariable String accountId,
             @RequestParam(required = true) String fromAccountingDate,
@@ -52,8 +53,7 @@ public class AccountController {
         return ResponseEntity.ok(response);
     }
 
-
-    @PostMapping("/{accountId}/payments/money-transfers")
+    @PostMapping("/{accountId}" + ApiConstants.MONEY_TRANSFERS_ENDPOINT)
     public ResponseEntity<ApiResponse<MoneyTransferResponse>> createMoneyTransfer(
             @PathVariable String accountId,
             @RequestBody @Valid MoneyTransferRequest request) {
