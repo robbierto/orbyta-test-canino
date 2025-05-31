@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configurazione generale del sistema di logging Logback per l'applicazione -->
+<configuration>
+    <!-- Definizione della directory di base per i file di log -->
+    <property name="LOGS" value="./logs" />
+
+    
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- Pattern che definisce il formato dei messaggi di log nella console -->
+            <pattern>%d{ISO8601} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Appender File - Configura l'output di tutti i log su file con rotazione basata su tempo e dimensione -->
+    <appender name="RollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- File di log principale -->
+        <file>${LOGS}/banking-service.log</file>
+        <encoder>
+            <!-- Pattern per il formato dei messaggi nei file di log -->
+            <pattern>%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <!-- rotazione dei file di log basata sul tempo e dimensione -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Schema di nomenclatura per i file archiviati -->
+            <fileNamePattern>${LOGS}/archived/banking-service-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- Dimensione massima di ogni file di log prima della rotazione -->
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!-- Numero massimo di giorni di log da mantenere -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Appender per gli errori - Registra solo i messaggi di livello ERROR su un file separato -->
+    <appender name="ErrorFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- File dedicato agli errori -->
+        <file>${LOGS}/error.log</file>
+        <encoder>
+            <pattern>%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <!-- solo i messaggi di livello ERROR vengano scritti -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <!-- rotazione per i file di errore -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOGS}/archived/error-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!-- Periodo più lungo di conservazione per i log di errore -->
+            <maxHistory>60</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Configurazioni specifiche per i log di Spring e Hibernate - impostati a livello INFO -->
+    <logger name="org.springframework" level="INFO" />
+    <logger name="org.hibernate" level="INFO" />
+    
+    <!-- Application logs -->
+    <logger name="com.orbyta" level="DEBUG" />
+
+    <!-- Root logger -->
+    <root level="INFO">
+        <appender-ref ref="Console" />
+        <appender-ref ref="RollingFile" />
+        <appender-ref ref="ErrorFile" />
+    </root>
+</configuration>
